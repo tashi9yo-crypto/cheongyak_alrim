@@ -441,22 +441,96 @@ function diffDays(s){
   return Math.ceil((new Date(s.substr(0,4),+s.substr(4,2)-1,+s.substr(6,2))-new Date())/86400000);
 }
 
-function generateData(){
-  return [
-    {id:'gh1',org:'GH',orgLabel:'청약홈',type:'민영',region:'서울',name:'마포 래미안 포레스트',addr:'서울 마포구',supply:423,priceVal:11,price:'9.5억~14억',apply:'20250610',close:'20250617',move:'2027.12',hot:true,isNew:false,special:['다자녀','신혼부부'],ratio:'1:4.2'},
-    {id:'gh2',org:'GH',orgLabel:'청약홈',type:'민영',region:'인천',name:'송도 자이 더 스카이',addr:'인천 연수구',supply:687,priceVal:7,price:'5.8억~8.2억',apply:'20250612',close:'20250619',move:'2028.03',hot:false,isNew:true,special:['생애최초'],ratio:'1:2.1'},
-    {id:'gh3',org:'GH',orgLabel:'청약홈',type:'국민',region:'경기',name:'수원 푸르지오 센트럴파크',addr:'경기 수원시',supply:312,priceVal:5,price:'4.1억~5.9억',apply:'20250608',close:'20250613',move:'2027.08',hot:true,isNew:false,special:['다자녀','노부모'],ratio:'1:7.8'},
-    {id:'gh4',org:'GH',orgLabel:'청약홈',type:'민영',region:'부산',name:'해운대 아이파크 오션뷰',addr:'부산 해운대구',supply:198,priceVal:10,price:'7.3억~12억',apply:'20250620',close:'20250627',move:'2028.06',hot:false,isNew:true,special:['신혼부부'],ratio:'-'},
-    {id:'gh5',org:'GH',orgLabel:'청약홈',type:'민영',region:'대전',name:'유성 롯데캐슬 더 퍼스트',addr:'대전 유성구',supply:520,priceVal:5,price:'3.8억~6.5억',apply:'20250625',close:'20250702',move:'2028.01',hot:false,isNew:false,special:[],ratio:'1:0.9'},
-    {id:'lh1',org:'LH',orgLabel:'LH공사',type:'임대',region:'경기',name:'남양주 별내 LH 행복주택',addr:'경기 남양주시',supply:240,priceVal:0.3,price:'보증금 2,800만/월 18만',apply:'20250605',close:'20250612',move:'2026.09',hot:false,isNew:true,special:['청년','신혼부부','고령자'],ratio:'1:3.5'},
-    {id:'lh2',org:'LH',orgLabel:'LH공사',type:'분양전환',region:'세종',name:'세종 4-2생활권 LH 공공분양',addr:'세종특별자치시',supply:415,priceVal:4,price:'3.2억~4.8억',apply:'20250611',close:'20250618',move:'2027.05',hot:true,isNew:false,special:['생애최초','다자녀'],ratio:'1:5.1'},
-    {id:'lh3',org:'LH',orgLabel:'LH공사',type:'임대',region:'광주',name:'광주 첨단 LH 국민임대',addr:'광주 광산구',supply:180,priceVal:0.2,price:'보증금 1,200만/월 12만',apply:'20250618',close:'20250625',move:'2026.12',hot:false,isNew:false,special:['고령자'],ratio:'1:1.8'},
-    {id:'lh4',org:'LH',orgLabel:'LH공사',type:'국민',region:'인천',name:'검단 LH 뉴홈',addr:'인천 서구',supply:598,priceVal:4.5,price:'3.6억~5.1억',apply:'20250628',close:'20250705',move:'2028.04',hot:false,isNew:true,special:['신혼부부','생애최초'],ratio:'-'},
-    {id:'sh1',org:'SH',orgLabel:'SH공사',type:'임대',region:'서울',name:'마곡지구 SH 행복주택',addr:'서울 강서구',supply:320,priceVal:0.5,price:'보증금 4,500만/월 23만',apply:'20250607',close:'20250614',move:'2026.11',hot:true,isNew:false,special:['청년','신혼부부'],ratio:'1:8.4'},
-    {id:'sh2',org:'SH',orgLabel:'SH공사',type:'국민',region:'서울',name:'은평구 SH 뉴홈 공공분양',addr:'서울 은평구',supply:156,priceVal:6,price:'5.1억~7.4억',apply:'20250615',close:'20250622',move:'2028.02',hot:false,isNew:true,special:['생애최초'],ratio:'1:6.3'},
-    {id:'sh3',org:'SH',orgLabel:'SH공사',type:'임대',region:'서울',name:'장위뉴타운 SH 장기전세',addr:'서울 성북구',supply:84,priceVal:1.8,price:'보증금 1.8억 (시세 80%)',apply:'20250622',close:'20250629',move:'즉시',hot:false,isNew:false,special:['다자녀','노부모','고령자'],ratio:'1:2.0'},
-  ].map(d=>({...d,daysLeft:diffDays(d.close)}))
-   .filter(d=>d.daysLeft===null||d.daysLeft>=0);
+const SHEET_ID = '19P2Ze7JfxcLLJ6be68A3yZjEKCLFKAgODztwkTOZWfM';
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=시트1`;
+
+// 유형명 → 내부 타입 매핑
+function mapType(v){
+  if(!v) return '기타';
+  if(v.includes('민영')) return '민영';
+  if(v.includes('국민')) return '국민';
+  if(v.includes('임대')) return '임대';
+  if(v.includes('분양전환')) return '분양전환';
+  if(v.includes('신혼희망')) return '민영';
+  if(v.includes('공공')) return '국민';
+  return v;
+}
+// 지역명 → 광역시도 단축
+function mapRegion(v){
+  if(!v) return '기타';
+  if(v.includes('서울')) return '서울';
+  if(v.includes('경기')) return '경기';
+  if(v.includes('인천')) return '인천';
+  if(v.includes('부산')) return '부산';
+  if(v.includes('대전')) return '대전';
+  if(v.includes('광주')) return '광주';
+  if(v.includes('대구')) return '대구';
+  if(v.includes('세종')) return '세종';
+  if(v.includes('울산')) return '기타';
+  if(v.includes('강원')) return '기타';
+  return '기타';
+}
+// 날짜 포맷 정규화 (2026-05-29 → 20260529)
+function normDate(v){
+  if(!v) return '';
+  return String(v).replace(/-/g,'').trim().substr(0,8);
+}
+// 기관 판별
+function mapOrg(addr, type){
+  if(!addr) return {org:'GH',orgLabel:'청약홈'};
+  if(addr.includes('lh.or.kr')||addr.includes('apply.lh')) return {org:'LH',orgLabel:'LH공사'};
+  if(addr.includes('i-sh')||addr.includes('seoulhousing')) return {org:'SH',orgLabel:'SH공사'};
+  return {org:'GH',orgLabel:'청약홈'};
+}
+
+async function fetchSheetData(){
+  try{
+    const res = await fetch(SHEET_URL);
+    const text = await res.text();
+    // Google gviz 응답에서 JSON 추출
+    const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+    const rows = json.table.rows;
+    const today = new Date(); today.setHours(0,0,0,0);
+
+    return rows
+      .filter(r => r.c && r.c[0] && r.c[0].v) // 빈 행 제거
+      .map((r,i) => {
+        const cells = r.c.map(c => c ? (c.v !== null && c.v !== undefined ? String(c.v) : '') : '');
+        const [공고번호, 주택명, 지역, 주소, 유형, 공급세대, 청약시작, 청약마감, 입주예정, 공고URL] = cells;
+        const closeDate = normDate(청약마감);
+        const dl = diffDays(closeDate);
+        const orgInfo = mapOrg(공고URL||'', 유형||'');
+        return {
+          id: 공고번호 || `row_${i}`,
+          org: orgInfo.org,
+          orgLabel: orgInfo.orgLabel,
+          type: mapType(유형),
+          region: mapRegion(지역),
+          name: 주택명 || '-',
+          addr: 주소 || 지역 || '-',
+          supply: parseInt(공급세대)||0,
+          priceVal: 0, // API에서 미제공
+          price: '-',
+          apply: normDate(청약시작),
+          close: closeDate,
+          move: (입주예정||'').replace(/(\d{4})(\d{2})/,'$1.$2'),
+          hot: false,
+          isNew: dl !== null && dl >= 0 && dl <= 7,
+          special: [],
+          ratio: '-',
+          url: 공고URL || '',
+          daysLeft: dl,
+        };
+      })
+      .filter(d => d.daysLeft === null || d.daysLeft >= 0);
+  } catch(e){
+    console.error('Sheets 데이터 로드 실패:', e);
+    return [];
+  }
+}
+
+async function generateData(){
+  return await fetchSheetData();
 }
 
 function isMatch(d,p){
@@ -492,10 +566,17 @@ function renderPresets(){
   }).join('');
 }
 
-function applyPreset(i){
+async function applyPreset(i){
   activePresetIdx=i;
   profile=JSON.parse(JSON.stringify(presets[i].profile));
-  if(!setupDone){allData=generateData();setupDone=true;document.getElementById('mainSection').style.display='block';}
+  if(!setupDone){
+    setupDone=true;
+    document.getElementById('mainSection').style.display='block';
+    document.getElementById('listWrap').innerHTML='<div class="no-match"><i class="ti ti-loader spin" style="font-size:24px;display:block;margin-bottom:8px"></i>공고 불러오는 중...</div>';
+    allData = await generateData();
+    const now=new Date();
+    document.getElementById('lastUpd').textContent=`업데이트: ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} (공고 ${allData.length}건)`;
+  }
   renderPresets();renderProfileSummary();renderMatchBanner();updateTabs();renderList();
   curTab=0;curPage=1;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelector('.tab').classList.add('active');
   showToast(`"${presets[i].name}" 프리셋 적용됨`);
@@ -591,14 +672,18 @@ function nextStep(){
   if(curStep<STEPS.length-1){curStep++;renderStepIndicator();renderStepBody();}
   else{finishSetup();}
 }
-function finishSetup(){
-  setupDone=true;allData=generateData();
+async function finishSetup(){
+  setupDone=true;
+  try{localStorage.setItem('cc_profile',JSON.stringify(profile));}catch(e){}
   document.getElementById('setupWrap').style.display='none';
   document.getElementById('mainSection').style.display='block';
   document.getElementById('setupToggleBtn').innerHTML='<i class="ti ti-adjustments-horizontal"></i> 조건수정';
-  renderProfileSummary();renderMatchBanner();updateTabs();renderList();renderPresets();
+  document.getElementById('lastUpd').textContent='공고 불러오는 중...';
+  document.getElementById('listWrap').innerHTML='<div class="no-match"><i class="ti ti-loader spin" style="font-size:24px;display:block;margin-bottom:8px"></i>공고 불러오는 중...</div>';
+  allData = await generateData();
   const now=new Date();
-  document.getElementById('lastUpd').textContent=`업데이트: ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+  document.getElementById('lastUpd').textContent=`업데이트: ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} (공고 ${allData.length}건)`;
+  renderProfileSummary();renderMatchBanner();updateTabs();renderList();renderPresets();
 }
 function toggleSetup(){
   const w=document.getElementById('setupWrap');
@@ -791,27 +876,45 @@ function showToast(msg){
   t.textContent=msg;t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2500);
 }
-function doRefresh(){
+async function doRefresh(){
   if(!setupDone)return;
   const ico=document.getElementById('refreshIco');
   ico.classList.add('spin');
-  setTimeout(()=>{
-    ico.classList.remove('spin');
-    allData=generateData();updateTabs();renderList();renderMatchBanner();renderPresets();
-    const now=new Date();
-    document.getElementById('lastUpd').textContent=`업데이트: ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
-    showToast('최신 공고로 업데이트됐습니다');
-  },900);
+  document.getElementById('listWrap').innerHTML='<div class="no-match"><i class="ti ti-loader spin" style="font-size:24px;display:block;margin-bottom:8px"></i>공고 불러오는 중...</div>';
+  allData = await generateData();
+  ico.classList.remove('spin');
+  updateTabs();renderList();renderMatchBanner();renderPresets();
+  const now=new Date();
+  document.getElementById('lastUpd').textContent=`업데이트: ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} (공고 ${allData.length}건)`;
+  showToast('최신 공고로 업데이트됐습니다');
 }
 
 // INIT
 if(presets.length){renderPresets();}else{renderPresets();}
 curStep=0;renderStepIndicator();renderStepBody();
-// 알림 버튼 상태 표시
 if(notifySettings.slack||notifySettings.discord){
   document.getElementById('notifyBtn').classList.add('accent');
   document.getElementById('notifyBtn').innerHTML='<i class="ti ti-bell-ringing"></i> 알림ON';
 }
+// 저장된 프로필 있으면 자동 로드
+(async()=>{
+  try{
+    const saved=localStorage.getItem('cc_profile');
+    if(saved){
+      profile=JSON.parse(saved);
+      setupDone=true;
+      document.getElementById('setupWrap').style.display='none';
+      document.getElementById('mainSection').style.display='block';
+      document.getElementById('setupToggleBtn').innerHTML='<i class="ti ti-adjustments-horizontal"></i> 조건수정';
+      document.getElementById('lastUpd').textContent='공고 불러오는 중...';
+      document.getElementById('listWrap').innerHTML='<div class="no-match"><i class="ti ti-loader spin" style="font-size:24px;display:block;margin-bottom:8px"></i>공고 불러오는 중...</div>';
+      allData = await generateData();
+      const now=new Date();
+      document.getElementById('lastUpd').textContent=`업데이트: ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} (공고 ${allData.length}건)`;
+      renderProfileSummary();renderMatchBanner();updateTabs();renderList();renderPresets();
+    }
+  }catch(e){}
+})();
 </script>
 </body>
 </html>
