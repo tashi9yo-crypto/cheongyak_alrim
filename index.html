@@ -448,13 +448,13 @@ const SHEET_URL_LH = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq
 // 유형명 → 내부 타입 매핑
 function mapType(v){
   if(!v) return '기타';
+  if(v.includes('상가')||v.includes('근린')) return '상가';
+  if(v.includes('토지')||v.includes('필지')) return '토지';
   if(v.includes('민영')) return '민영';
   if(v.includes('국민')) return '국민';
   if(v.includes('임대')||v.includes('행복주택')||v.includes('전세임대')||v.includes('매입임대')) return '임대';
   if(v.includes('분양전환')) return '분양전환';
   if(v.includes('신혼희망')||v.includes('공공분양')||v.includes('뉴홈')) return '국민';
-  if(v.includes('상가')||v.includes('근린')) return '상가';
-  if(v.includes('토지')||v.includes('필지')) return '토지';
   return '기타';
 }
 // 지역명 → 광역시도 단축
