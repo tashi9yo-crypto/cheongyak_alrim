@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>청약 맞춤 알리미</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f8f8f6;--bg3:#f2f0ea;
+  --text:#1a1a1a;--text2:#666;--text3:#999;
+  --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.2);
+  --green:#1D9E75;--green-bg:#E1F5EE;--green-border:#9FE1CB;--green-text:#0F6E56;
+  --blue-bg:#E6F1FB;--blue-text:#185FA5;
+  --amber-bg:#FAEEDA;--amber-text:#854F0B;
+  --purple-bg:#EEEDFE;--purple-text:#534AB7;
+  --pink-bg:#FBEAF0;--pink-text:#993556;
+  --red:#D85A30;--amber:#BA7517;
+  --radius:8px;--radius-lg:12px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;
+    --text:#f0ede8;--text2:#999;--text3:#666;
+    --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.2);
+    --green-bg:#085041;--green-border:#0F6E56;--green-text:#9FE1CB;
+    --blue-bg:#0C447C;--blue-text:#B5D4F4;
+    --amber-bg:#633806;--amber-text:#FAC775;
+    --purple-bg:#3C3489;--purple-text:#CECBF6;
+    --pink-bg:#72243E;--pink-text:#F4C0D1;
+  }
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh}
+.container{max-width:720px;margin:0 auto;padding:1.5rem 1rem 3rem}
+
+/* HEADER */
+.hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+.hd-l{display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;background:var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700;flex-shrink:0}
+.hd-title{font-size:18px;font-weight:600;color:var(--text)}
+.hd-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.hd-r{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.btn-sm{display:flex;align-items:center;gap:5px;font-size:13px;padding:7px 13px;border:1px solid var(--border2);border-radius:var(--radius);background:transparent;color:var(--text2);cursor:pointer;white-space:nowrap}
+.btn-sm:hover{background:var(--bg2)}
+.btn-sm.accent{background:var(--green-bg);border-color:var(--green-border);color:var(--green-text)}
+.btn-sm.danger{background:#FAECE7;border-color:#F5C4B3;color:#993C1D}
+
+/* PRESET BAR */
+.preset-bar{display:flex;align-items:center;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap}
+.preset-label{font-size:12px;color:var(--text3);white-space:nowrap}
+.preset-chips{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.preset-chip{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:20px;font-size:13px;cursor:pointer;background:var(--bg);color:var(--text2);transition:all .15s;position:relative}
+.preset-chip:hover{border-color:var(--border2);color:var(--text)}
+.preset-chip.active{font-weight:600;border-width:1.5px}
+.preset-chip .pc-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.preset-chip .pc-del{font-size:12px;color:var(--text3);margin-left:2px;line-height:1}
+.preset-chip .pc-del:hover{color:var(--red)}
+.preset-add{display:flex;align-items:center;gap:4px;padding:6px 11px;border:1px dashed var(--border2);border-radius:20px;font-size:13px;cursor:pointer;background:transparent;color:var(--text3)}
+.preset-add:hover{color:var(--text);border-color:var(--border2)}
+.preset-colors{display:flex;gap:6px;margin-top:8px}
+.pc-swatch{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent}
+.pc-swatch.sel{border-color:var(--text)}
+
+/* SETUP */
+.setup-wrap{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem 1.5rem;margin-bottom:1.25rem}
+.setup-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.setup-title{font-size:15px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:7px}
+.step-indicator{display:flex;gap:6px;margin-bottom:1.25rem}
+.step{flex:1;padding:8px 6px;border:1px solid var(--border);border-radius:var(--radius);text-align:center;font-size:11px;color:var(--text2);cursor:pointer;transition:all .15s}
+.step.done{background:var(--green-bg);border-color:var(--green-border);color:var(--green-text)}
+.step.active{border-color:var(--green);color:var(--green);font-weight:600}
+.step-num{display:block;font-size:10px;margin-bottom:2px;opacity:.7}
+.field-group{margin-bottom:1.1rem}
+.field-label{font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.field-label .req{color:var(--red);font-size:11px;font-weight:400}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:7px 13px;border:1px solid var(--border);border-radius:20px;font-size:13px;cursor:pointer;background:transparent;color:var(--text2);transition:all .15s}
+.chip:hover{border-color:var(--border2);color:var(--text)}
+.chip.on{background:var(--green-bg);border-color:var(--green-border);color:var(--green-text);font-weight:500}
+.price-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.price-row input,.text-input{width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:var(--radius);font-size:14px;background:var(--bg);color:var(--text)}
+.price-row input:focus,.text-input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.1)}
+.price-unit{font-size:12px;color:var(--text3);margin-top:4px}
+.step-nav{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border)}
+.btn-next{padding:9px 22px;background:var(--green);color:#fff;border:none;border-radius:var(--radius);font-size:14px;cursor:pointer;font-weight:600}
+.btn-next:hover{background:var(--green-text)}
+.btn-prev{padding:9px 16px;border:1px solid var(--border2);border-radius:var(--radius);font-size:14px;cursor:pointer;background:transparent;color:var(--text2)}
+.btn-prev:hover{background:var(--bg2)}
+
+/* NOTIFY SETUP */
+.notify-section{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)}
+.notify-toggle{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.toggle-wrap{display:flex;align-items:center;gap:8px;cursor:pointer}
+.toggle{width:38px;height:22px;background:var(--border2);border-radius:11px;position:relative;transition:background .2s;cursor:pointer;border:none;flex-shrink:0}
+.toggle.on{background:var(--green)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:left .2s}
+.toggle.on::after{left:19px}
+.webhook-row{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.webhook-item{display:flex;align-items:center;gap:8px}
+.webhook-item input{flex:1;padding:8px 12px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;background:var(--bg);color:var(--text)}
+.webhook-item input:focus{outline:none;border-color:var(--green)}
+.webhook-label{font-size:13px;color:var(--text2);width:62px;flex-shrink:0;display:flex;align-items:center;gap:5px}
+.wh-test{padding:7px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:12px;cursor:pointer;background:transparent;color:var(--text2)}
+.wh-test:hover{background:var(--bg2)}
+
+/* MAIN */
+.profile-summary{display:flex;flex-wrap:wrap;gap:8px;padding:10px 14px;background:var(--bg2);border-radius:var(--radius);margin-bottom:1rem}
+.ps-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)}
+.ps-val{font-weight:600;color:var(--text)}
+.match-banner{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;background:var(--green-bg);border-radius:var(--radius);margin-bottom:1rem;font-size:13px;color:var(--green-text)}
+.match-count{font-weight:700;font-size:16px}
+.tabs{display:flex;gap:2px;margin-bottom:1rem;border-bottom:1px solid var(--border);overflow-x:auto}
+.tab{padding:9px 14px;font-size:13px;border:none;background:transparent;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab.active{color:var(--green);border-bottom-color:var(--green);font-weight:600}
+.badge{display:inline-block;font-size:10px;padding:1px 5px;border-radius:9px;margin-left:3px;background:var(--bg2);color:var(--text2)}
+.tab.active .badge{background:var(--green-bg);color:var(--green-text)}
+.search-wrap{display:flex;align-items:center;gap:8px;margin-bottom:1rem}
+.search-inner{position:relative;flex:1}
+.search-inner input{width:100%;padding:9px 12px 9px 32px;border:1px solid var(--border2);border-radius:var(--radius);font-size:14px;background:var(--bg);color:var(--text)}
+.search-inner input:focus{outline:none;border-color:var(--green)}
+.si{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--text3)}
+.sort-sel{padding:9px 10px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;background:var(--bg);color:var(--text2)}
+
+/* CARDS */
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:border-color .15s}
+.card:hover{border-color:var(--border2)}
+.card.match-card{border-left:3px solid var(--green)}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+.card-name{font-size:14px;font-weight:600;color:var(--text);line-height:1.4}
+.card-org{font-size:12px;color:var(--text2);margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pill{font-size:11px;padding:2px 7px;border-radius:10px;font-weight:500}
+.p-gh{background:var(--green-bg);color:var(--green-text)}
+.p-lh{background:var(--blue-bg);color:var(--blue-text)}
+.p-sh{background:var(--amber-bg);color:var(--amber-text)}
+.p-hot{background:#FAECE7;color:#993C1D}
+.p-new{background:#FBEAF0;color:#993556}
+.card-meta{display:flex;gap:14px;flex-wrap:wrap}
+.mi{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)}
+.dday{font-size:13px;font-weight:700;flex-shrink:0}
+.red{color:var(--red)}.amber{color:var(--amber)}.green{color:var(--green)}
+.match-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.mt{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--green-bg);color:var(--green-text);display:flex;align-items:center;gap:3px}
+.no-match{text-align:center;padding:3rem 0;color:var(--text2);font-size:14px;line-height:1.8}
+.pg{display:flex;justify-content:center;gap:6px;margin-top:1rem}
+.pg-btn{padding:7px 12px;border:1px solid var(--border);border-radius:var(--radius);background:transparent;cursor:pointer;font-size:13px;color:var(--text2)}
+.pg-btn.active{background:var(--green);color:#fff;border-color:var(--green)}
+.pg-btn:hover:not(.active){background:var(--bg2)}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;align-items:flex-end;justify-content:center}
+.modal-bg.open{display:flex}
+@media(min-width:600px){.modal-bg{align-items:center}}
+.modal{background:var(--bg);border-radius:var(--radius-lg) var(--radius-lg) 0 0;width:100%;max-width:500px;max-height:88vh;overflow-y:auto;padding:1.5rem}
+@media(min-width:600px){.modal{border-radius:var(--radius-lg)}}
+.modal-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem}
+.modal-title{font-size:16px;font-weight:600;color:var(--text)}
+.modal-close{background:transparent;border:none;cursor:pointer;color:var(--text2);font-size:20px;line-height:1}
+.ds{margin-bottom:1.1rem}
+.ds-label{font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.05em;margin-bottom:8px;text-transform:uppercase}
+.dr{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.dr:last-child{border-bottom:none}
+.dk{color:var(--text2)}.dv{color:var(--text)}.dv-hl{color:var(--green);font-weight:600}
+.action-btns{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.abtn{display:flex;align-items:center;justify-content:center;gap:7px;padding:11px;border:1px solid var(--border2);border-radius:var(--radius);background:transparent;cursor:pointer;font-size:14px;color:var(--text2);transition:all .15s}
+.abtn:hover{background:var(--bg2)}
+.abtn.primary{background:var(--green-bg);border-color:var(--green-border);color:var(--green-text);font-weight:500}
+
+/* PRESET MODAL */
+.pmodal{background:var(--bg);border-radius:var(--radius-lg) var(--radius-lg) 0 0;width:100%;max-width:440px;padding:1.5rem}
+@media(min-width:600px){.pmodal{border-radius:var(--radius-lg)}}
+.pname-input{width:100%;padding:10px 14px;border:1.5px solid var(--green);border-radius:var(--radius);font-size:15px;background:var(--bg);color:var(--text);margin-bottom:12px}
+.pname-input:focus{outline:none}
+
+/* NOTIFY MODAL */
+.nmodal{background:var(--bg);border-radius:var(--radius-lg) var(--radius-lg) 0 0;width:100%;max-width:480px;padding:1.5rem;max-height:88vh;overflow-y:auto}
+@media(min-width:600px){.nmodal{border-radius:var(--radius-lg)}}
+.nmodal h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.nmodal .sub{font-size:13px;color:var(--text2);margin-bottom:1rem;line-height:1.5}
+.platform-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+.platform-card{padding:14px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;text-align:center;transition:all .15s}
+.platform-card:hover,.platform-card.on{border-color:var(--green);background:var(--green-bg)}
+.platform-card i{font-size:24px;display:block;margin-bottom:6px;color:var(--text2)}
+.platform-card.on i{color:var(--green-text)}
+.platform-card .pn{font-size:13px;font-weight:600;color:var(--text)}
+.platform-card .pd{font-size:11px;color:var(--text3);margin-top:2px}
+.webhook-field{margin-bottom:1rem}
+.webhook-field label{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.webhook-field input{width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;background:var(--bg);color:var(--text)}
+.webhook-field input:focus{outline:none;border-color:var(--green)}
+.webhook-field .hint{font-size:11px;color:var(--text3);margin-top:5px;line-height:1.5}
+.guide-box{background:var(--bg2);border-radius:var(--radius);padding:12px 14px;margin-bottom:1rem}
+.guide-box ol{padding-left:18px;font-size:13px;color:var(--text2);line-height:2}
+.guide-box a{color:var(--green);text-decoration:none}
+.guide-box code{font-size:11px;background:var(--bg3);padding:1px 5px;border-radius:4px;font-family:monospace;color:var(--text)}
+.save-notify-btn{width:100%;padding:12px;background:var(--green);color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer}
+.save-notify-btn:hover{background:var(--green-text)}
+
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;color:#fff;padding:11px 20px;border-radius:var(--radius);font-size:13px;transition:transform .25s;z-index:300;white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+@media(prefers-color-scheme:dark){.toast{background:#f0ede8;color:#1a1a1a}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin 1s linear infinite}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="hd">
+    <div class="hd-l">
+      <div class="logo">집</div>
+      <div>
+        <div class="hd-title">청약 맞춤 알리미</div>
+        <div class="hd-sub" id="lastUpd">조건을 먼저 설정해주세요</div>
+      </div>
+    </div>
+    <div class="hd-r">
+      <button class="btn-sm" onclick="openNotifyModal()" id="notifyBtn">
+        <i class="ti ti-bell"></i> 알림설정
+      </button>
+      <button class="btn-sm accent" onclick="toggleSetup()" id="setupToggleBtn">
+        <i class="ti ti-adjustments-horizontal"></i> 조건설정
+      </button>
+      <button class="btn-sm" onclick="doRefresh()">
+        <i class="ti ti-refresh" id="refreshIco"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- PRESET BAR -->
+  <div class="preset-bar" id="presetBar">
+    <span class="preset-label">프리셋</span>
+    <div class="preset-chips" id="presetChips"></div>
+    <button class="preset-add" onclick="openSavePresetModal()">
+      <i class="ti ti-plus" style="font-size:13px"></i> 저장
+    </button>
+  </div>
+
+  <!-- SETUP -->
+  <div class="setup-wrap" id="setupWrap">
+    <div class="setup-header">
+      <div class="setup-title"><i class="ti ti-user-circle" style="font-size:18px"></i> 조건 설정 <span id="editingPresetName" style="font-size:13px;color:var(--text2);font-weight:400"></span></div>
+      <button class="btn-sm" onclick="toggleSetup()" style="padding:5px 10px"><i class="ti ti-chevron-up" id="collapseIco"></i></button>
+    </div>
+    <div class="step-indicator" id="stepIndicator"></div>
+    <div id="stepBody"></div>
+    <div class="step-nav">
+      <button class="btn-prev" id="prevBtn" onclick="prevStep()">이전</button>
+      <div style="font-size:12px;color:var(--text2)" id="stepCounter"></div>
+      <button class="btn-next" id="nextBtn" onclick="nextStep()">다음</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="mainSection" style="display:none">
+    <div class="profile-summary" id="profileSummary"></div>
+    <div class="match-banner" id="matchBanner"></div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab(0,this)">맞춤 공고 <span class="badge" id="t0">0</span></button>
+      <button class="tab" onclick="switchTab(1,this)">전체 <span class="badge" id="t1">0</span></button>
+      <button class="tab" onclick="switchTab(2,this)">GH <span class="badge" id="t2">0</span></button>
+      <button class="tab" onclick="switchTab(3,this)">LH <span class="badge" id="t3">0</span></button>
+      <button class="tab" onclick="switchTab(4,this)">SH <span class="badge" id="t4">0</span></button>
+      <button class="tab" onclick="switchTab(5,this)">북마크 <span class="badge" id="t5">0</span></button>
+    </div>
+    <div class="search-wrap">
+      <div class="search-inner">
+        <i class="ti ti-search si"></i>
+        <input type="text" placeholder="단지명, 지역 검색" id="searchQ" oninput="renderList()">
+      </div>
+      <select class="sort-sel" id="sortSel" onchange="renderList()">
+        <option value="dday">마감순</option>
+        <option value="supply">세대수 많은순</option>
+      </select>
+    </div>
+    <div id="listWrap"></div>
+    <div class="pg" id="pgWrap"></div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-bg" id="detailBg" onclick="bgClose(event,'detailBg')">
+  <div class="modal">
+    <div class="modal-hd">
+      <span class="modal-title" id="modalTitle"></span>
+      <button class="modal-close" onclick="closeModal('detailBg')"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<!-- PRESET SAVE MODAL -->
+<div class="modal-bg" id="presetModalBg" onclick="bgClose(event,'presetModalBg')">
+  <div class="pmodal">
+    <div class="modal-hd">
+      <span class="modal-title">프리셋 저장</span>
+      <button class="modal-close" onclick="closeModal('presetModalBg')"><i class="ti ti-x"></i></button>
+    </div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px">현재 조건을 이름을 붙여 저장합니다.</p>
+    <input class="pname-input" id="presetNameInput" placeholder="예: 서울 신혼부부, 경기 5억 이하..." maxlength="20">
+    <div style="margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px">색상 선택</div>
+      <div class="preset-colors" id="colorPicker"></div>
+    </div>
+    <button class="btn-next" style="width:100%" onclick="savePreset()">저장하기</button>
+  </div>
+</div>
+
+<!-- NOTIFY MODAL -->
+<div class="modal-bg" id="notifyModalBg" onclick="bgClose(event,'notifyModalBg')">
+  <div class="nmodal">
+    <div class="modal-hd">
+      <span class="modal-title"><i class="ti ti-bell" style="margin-right:6px"></i>알림 설정</span>
+      <button class="modal-close" onclick="closeModal('notifyModalBg')"><i class="ti ti-x"></i></button>
+    </div>
+
+    <div style="margin-bottom:1rem">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px">알림 받을 플랫폼</div>
+      <div class="platform-row">
+        <div class="platform-card" id="slackCard" onclick="togglePlatform('slack')">
+          <i class="ti ti-brand-slack"></i>
+          <div class="pn">Slack</div>
+          <div class="pd">Incoming Webhook</div>
+        </div>
+        <div class="platform-card" id="discordCard" onclick="togglePlatform('discord')">
+          <i class="ti ti-brand-discord"></i>
+          <div class="pn">Discord</div>
+          <div class="pd">Webhook URL</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="slackSection" style="display:none">
+      <div class="webhook-field">
+        <label><i class="ti ti-brand-slack" style="font-size:15px"></i> Slack Webhook URL</label>
+        <input type="url" id="slackUrl" placeholder="https://hooks.slack.com/services/..." oninput="saveNotifySettings()">
+        <div class="hint">※ Slack 앱 → Incoming Webhooks → Add New Webhook</div>
+      </div>
+      <div class="guide-box">
+        <ol>
+          <li><a href="https://api.slack.com/apps" target="_blank">api.slack.com/apps</a> 접속</li>
+          <li>Create New App → From scratch → 앱 이름 입력</li>
+          <li>Incoming Webhooks → Activate → Add New Webhook to Workspace</li>
+          <li>채널 선택 후 Webhook URL 복사해서 위에 붙여넣기</li>
+          <li>Make.com 시나리오에서 HTTP 모듈로 이 URL에 POST 요청</li>
+        </ol>
+      </div>
+    </div>
+
+    <div id="discordSection" style="display:none">
+      <div class="webhook-field">
+        <label><i class="ti ti-brand-discord" style="font-size:15px"></i> Discord Webhook URL</label>
+        <input type="url" id="discordUrl" placeholder="https://discord.com/api/webhooks/..." oninput="saveNotifySettings()">
+        <div class="hint">※ 서버 채널 설정 → 연동 → 웹후크 → 새 웹후크</div>
+      </div>
+      <div class="guide-box">
+        <ol>
+          <li>Discord 서버 → 알림받을 채널 → 채널 편집(톱니바퀴)</li>
+          <li>연동 → 웹후크 → 새 웹후크 생성</li>
+          <li>웹후크 URL 복사해서 위에 붙여넣기</li>
+          <li>Make.com 시나리오에서 HTTP 모듈로 이 URL에 POST 요청</li>
+        </ol>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:0.5rem">
+      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">
+        <i class="ti ti-brand-make" style="font-size:15px;margin-right:4px"></i>Make.com 자동화 연결
+      </div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.6">
+        Make.com에서 매일 정해진 시간에 청약 API를 체크하고, 조건에 맞는 공고가 있으면 자동으로 알림을 보냅니다.
+      </div>
+      <div class="guide-box">
+        <ol>
+          <li><a href="https://make.com" target="_blank">make.com</a> 로그인 후 새 시나리오 생성</li>
+          <li><b>Schedule</b> 트리거 → 매일 오전 9시 설정</li>
+          <li><b>HTTP</b> 모듈 → 청약홈 API 호출<br><code>https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancListView.do</code></li>
+          <li><b>JSON Parse</b> → 결과에서 조건 필터링</li>
+          <li>매칭되는 공고가 있으면 → <b>HTTP POST</b>로 위 Webhook URL 호출</li>
+          <li>Slack payload 예시:<br><code>{"text":"🏠 새 청약 공고: 마포 래미안 D-7"}</code></li>
+          <li>Discord payload 예시:<br><code>{"content":"🏠 새 청약 공고: 마포 래미안 D-7"}</code></li>
+        </ol>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="abtn" onclick="testWebhook('slack')" style="flex:1;font-size:13px;padding:9px">
+          <i class="ti ti-send" style="font-size:14px"></i> Slack 테스트
+        </button>
+        <button class="abtn" onclick="testWebhook('discord')" style="flex:1;font-size:13px;padding:9px">
+          <i class="ti ti-send" style="font-size:14px"></i> Discord 테스트
+        </button>
+      </div>
+    </div>
+
+    <div style="margin-top:1rem">
+      <button class="save-notify-btn" onclick="closeModal('notifyModalBg')">완료</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STEPS=[
+  {id:'region',title:'관심 지역',icon:'ti-map-pin'},
+  {id:'type',title:'주택 유형',icon:'ti-home'},
+  {id:'special',title:'특별공급',icon:'ti-certificate'},
+  {id:'price',title:'예산 범위',icon:'ti-currency-won'},
+  {id:'supply',title:'공급 규모',icon:'ti-building-community'},
+];
+const REGIONS=['서울','경기','인천','부산','대전','광주','대구','세종','기타'];
+const TYPES=['민영','국민','임대','분양전환'];
+const SPECIALS=['해당없음','신혼부부','생애최초','다자녀','청년','노부모','고령자'];
+const PRESET_COLORS=['#1D9E75','#378ADD','#D85A30','#D4537E','#7F77DD','#BA7517','#888780'];
+
+let profile={regions:[],types:[],specials:[],priceMin:'',priceMax:'',supplyMin:'0'};
+let presets=[];
+let activePresetIdx=-1;
+let curStep=0,setupDone=false,allData=[],curTab=0,curPage=1;
+const PER=8;
+let bookmarks=[];
+let notifySettings={slack:false,discord:false,slackUrl:'',discordUrl:''};
+let selectedColor=PRESET_COLORS[0];
+
+try{bookmarks=JSON.parse(localStorage.getItem('cc_bm')||'[]');}catch(e){}
+try{presets=JSON.parse(localStorage.getItem('cc_presets')||'[]');}catch(e){}
+try{notifySettings=JSON.parse(localStorage.getItem('cc_notify')||JSON.stringify(notifySettings));}catch(e){}
+
+function save(){
+  try{
+    localStorage.setItem('cc_bm',JSON.stringify(bookmarks));
+    localStorage.setItem('cc_presets',JSON.stringify(presets));
+    localStorage.setItem('cc_notify',JSON.stringify(notifySettings));
+  }catch(e){}
+}
+
+function fmtDate(d){return d?d.replace(/(\d{4})(\d{2})(\d{2})/,'$1.$2.$3'):'-';}
+function diffDays(s){
+  if(!s)return null;
+  return Math.ceil((new Date(s.substr(0,4),+s.substr(4,2)-1,+s.substr(6,2))-new Date())/86400000);
+}
+
+function generateData(){
+  return [
+    {id:'gh1',org:'GH',orgLabel:'청약홈',type:'민영',region:'서울',name:'마포 래미안 포레스트',addr:'서울 마포구',supply:423,priceVal:11,price:'9.5억~14억',apply:'20250610',close:'20250617',move:'2027.12',hot:true,isNew:false,special:['다자녀','신혼부부'],ratio:'1:4.2'},
+    {id:'gh2',org:'GH',orgLabel:'청약홈',type:'민영',region:'인천',name:'송도 자이 더 스카이',addr:'인천 연수구',supply:687,priceVal:7,price:'5.8억~8.2억',apply:'20250612',close:'20250619',move:'2028.03',hot:false,isNew:true,special:['생애최초'],ratio:'1:2.1'},
+    {id:'gh3',org:'GH',orgLabel:'청약홈',type:'국민',region:'경기',name:'수원 푸르지오 센트럴파크',addr:'경기 수원시',supply:312,priceVal:5,price:'4.1억~5.9억',apply:'20250608',close:'20250613',move:'2027.08',hot:true,isNew:false,special:['다자녀','노부모'],ratio:'1:7.8'},
+    {id:'gh4',org:'GH',orgLabel:'청약홈',type:'민영',region:'부산',name:'해운대 아이파크 오션뷰',addr:'부산 해운대구',supply:198,priceVal:10,price:'7.3억~12억',apply:'20250620',close:'20250627',move:'2028.06',hot:false,isNew:true,special:['신혼부부'],ratio:'-'},
+    {id:'gh5',org:'GH',orgLabel:'청약홈',type:'민영',region:'대전',name:'유성 롯데캐슬 더 퍼스트',addr:'대전 유성구',supply:520,priceVal:5,price:'3.8억~6.5억',apply:'20250625',close:'20250702',move:'2028.01',hot:false,isNew:false,special:[],ratio:'1:0.9'},
+    {id:'lh1',org:'LH',orgLabel:'LH공사',type:'임대',region:'경기',name:'남양주 별내 LH 행복주택',addr:'경기 남양주시',supply:240,priceVal:0.3,price:'보증금 2,800만/월 18만',apply:'20250605',close:'20250612',move:'2026.09',hot:false,isNew:true,special:['청년','신혼부부','고령자'],ratio:'1:3.5'},
+    {id:'lh2',org:'LH',orgLabel:'LH공사',type:'분양전환',region:'세종',name:'세종 4-2생활권 LH 공공분양',addr:'세종특별자치시',supply:415,priceVal:4,price:'3.2억~4.8억',apply:'20250611',close:'20250618',move:'2027.05',hot:true,isNew:false,special:['생애최초','다자녀'],ratio:'1:5.1'},
+    {id:'lh3',org:'LH',orgLabel:'LH공사',type:'임대',region:'광주',name:'광주 첨단 LH 국민임대',addr:'광주 광산구',supply:180,priceVal:0.2,price:'보증금 1,200만/월 12만',apply:'20250618',close:'20250625',move:'2026.12',hot:false,isNew:false,special:['고령자'],ratio:'1:1.8'},
+    {id:'lh4',org:'LH',orgLabel:'LH공사',type:'국민',region:'인천',name:'검단 LH 뉴홈',addr:'인천 서구',supply:598,priceVal:4.5,price:'3.6억~5.1억',apply:'20250628',close:'20250705',move:'2028.04',hot:false,isNew:true,special:['신혼부부','생애최초'],ratio:'-'},
+    {id:'sh1',org:'SH',orgLabel:'SH공사',type:'임대',region:'서울',name:'마곡지구 SH 행복주택',addr:'서울 강서구',supply:320,priceVal:0.5,price:'보증금 4,500만/월 23만',apply:'20250607',close:'20250614',move:'2026.11',hot:true,isNew:false,special:['청년','신혼부부'],ratio:'1:8.4'},
+    {id:'sh2',org:'SH',orgLabel:'SH공사',type:'국민',region:'서울',name:'은평구 SH 뉴홈 공공분양',addr:'서울 은평구',supply:156,priceVal:6,price:'5.1억~7.4억',apply:'20250615',close:'20250622',move:'2028.02',hot:false,isNew:true,special:['생애최초'],ratio:'1:6.3'},
+    {id:'sh3',org:'SH',orgLabel:'SH공사',type:'임대',region:'서울',name:'장위뉴타운 SH 장기전세',addr:'서울 성북구',supply:84,priceVal:1.8,price:'보증금 1.8억 (시세 80%)',apply:'20250622',close:'20250629',move:'즉시',hot:false,isNew:false,special:['다자녀','노부모','고령자'],ratio:'1:2.0'},
+  ].map(d=>({...d,daysLeft:diffDays(d.close)}));
+}
+
+function isMatch(d,p){
+  p=p||profile;
+  const rOk=p.regions.length===0||p.regions.includes(d.region)||p.regions.includes('기타');
+  const tOk=p.types.length===0||p.types.includes(d.type);
+  const sOk=p.specials.length===0||p.specials.includes('해당없음')||d.special.some(s=>p.specials.includes(s));
+  const pMinOk=!p.priceMin||d.priceVal>=parseFloat(p.priceMin);
+  const pMaxOk=!p.priceMax||d.priceVal<=parseFloat(p.priceMax);
+  const supOk=!p.supplyMin||p.supplyMin==='0'||d.supply>=parseInt(p.supplyMin);
+  return rOk&&tOk&&sOk&&pMinOk&&pMaxOk&&supOk;
+}
+function matchReasons(d){
+  const r=[];
+  if(profile.regions.length&&(profile.regions.includes(d.region)||profile.regions.includes('기타'))) r.push('관심지역');
+  if(profile.types.length&&profile.types.includes(d.type)) r.push(d.type);
+  if(profile.specials.length&&!profile.specials.includes('해당없음'))
+    d.special.filter(s=>profile.specials.includes(s)).forEach(s=>r.push(s+' 특공'));
+  return r;
+}
+
+/* ---- PRESET ---- */
+function renderPresets(){
+  const el=document.getElementById('presetChips');
+  if(!presets.length){el.innerHTML='<span style="font-size:12px;color:var(--text3)">저장된 프리셋 없음</span>';return;}
+  el.innerHTML=presets.map((p,i)=>{
+    const matchCount=setupDone?allData.filter(d=>isMatch(d,p.profile)).length:0;
+    return `<div class="preset-chip ${i===activePresetIdx?'active':''}" style="${i===activePresetIdx?`border-color:${p.color};color:${p.color}`:''}" onclick="applyPreset(${i})">
+      <span class="pc-dot" style="background:${p.color}"></span>
+      ${p.name}${setupDone?` <span style="font-size:10px;opacity:.7">${matchCount}건</span>`:''}
+      <span class="pc-del" onclick="deletePreset(event,${i})"><i class="ti ti-x" style="font-size:10px"></i></span>
+    </div>`;
+  }).join('');
+}
+
+function applyPreset(i){
+  activePresetIdx=i;
+  profile=JSON.parse(JSON.stringify(presets[i].profile));
+  if(!setupDone){allData=generateData();setupDone=true;document.getElementById('mainSection').style.display='block';}
+  renderPresets();renderProfileSummary();renderMatchBanner();updateTabs();renderList();
+  curTab=0;curPage=1;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelector('.tab').classList.add('active');
+  showToast(`"${presets[i].name}" 프리셋 적용됨`);
+  document.getElementById('lastUpd').textContent=`프리셋: ${presets[i].name}`;
+}
+
+function deletePreset(e,i){
+  e.stopPropagation();
+  if(!confirm(`"${presets[i].name}" 프리셋을 삭제할까요?`))return;
+  presets.splice(i,1);
+  if(activePresetIdx===i)activePresetIdx=-1;
+  else if(activePresetIdx>i)activePresetIdx--;
+  save();renderPresets();showToast('프리셋 삭제됨');
+}
+
+function openSavePresetModal(){
+  document.getElementById('presetNameInput').value='';
+  selectedColor=PRESET_COLORS[0];
+  const cp=document.getElementById('colorPicker');
+  cp.innerHTML=PRESET_COLORS.map((c,i)=>`<div class="pc-swatch ${i===0?'sel':''}" style="background:${c}" onclick="selectColor('${c}',this)"></div>`).join('');
+  openModal('presetModalBg');
+  setTimeout(()=>document.getElementById('presetNameInput').focus(),100);
+}
+
+function selectColor(c,el){
+  selectedColor=c;
+  document.querySelectorAll('.pc-swatch').forEach(s=>s.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function savePreset(){
+  const name=document.getElementById('presetNameInput').value.trim();
+  if(!name){showToast('이름을 입력해주세요');return;}
+  presets.push({name,color:selectedColor,profile:JSON.parse(JSON.stringify(profile))});
+  save();renderPresets();closeModal('presetModalBg');
+  showToast(`"${name}" 프리셋 저장됨`);
+}
+
+/* ---- SETUP ---- */
+function renderStepIndicator(){
+  document.getElementById('stepIndicator').innerHTML=STEPS.map((s,i)=>`
+    <div class="step ${i<curStep?'done':i===curStep?'active':''}" onclick="jumpStep(${i})">
+      <span class="step-num">${i+1}</span>${s.title}
+    </div>`).join('');
+}
+function renderStepBody(){
+  const s=STEPS[curStep];const p=profile;let html='';
+  if(s.id==='region'){
+    html=`<div class="field-group"><div class="field-label"><i class="ti ti-map-pin"></i> 관심 지역 <span class="req">복수 선택 가능</span></div>
+    <div class="chip-row">${REGIONS.map(r=>`<button class="chip ${p.regions.includes(r)?'on':''}" onclick="toggleArr('regions','${r}',this)">${r}</button>`).join('')}</div></div>`;
+  }else if(s.id==='type'){
+    html=`<div class="field-group"><div class="field-label"><i class="ti ti-home"></i> 주택 유형 <span class="req">복수 선택 가능</span></div>
+    <div class="chip-row">${TYPES.map(t=>`<button class="chip ${p.types.includes(t)?'on':''}" onclick="toggleArr('types','${t}',this)">${t}</button>`).join('')}</div></div>`;
+  }else if(s.id==='special'){
+    html=`<div class="field-group"><div class="field-label"><i class="ti ti-certificate"></i> 특별공급 자격 <span class="req">해당 항목 선택</span></div>
+    <div class="chip-row">${SPECIALS.map(s2=>`<button class="chip ${p.specials.includes(s2)?'on':''}" onclick="toggleArr('specials','${s2}',this)">${s2}</button>`).join('')}</div></div>`;
+  }else if(s.id==='price'){
+    html=`<div class="field-group"><div class="field-label"><i class="ti ti-currency-won"></i> 예산 범위 <span class="req">억 단위, 비워두면 제한없음</span></div>
+    <div class="price-row">
+      <div><input type="number" placeholder="최소 (예: 3)" id="pMin" value="${p.priceMin}" step="0.5" min="0" oninput="profile.priceMin=this.value"><div class="price-unit">억원 이상</div></div>
+      <div><input type="number" placeholder="최대 (예: 8)" id="pMax" value="${p.priceMax}" step="0.5" min="0" oninput="profile.priceMax=this.value"><div class="price-unit">억원 이하</div></div>
+    </div>
+    <div style="margin-top:12px"><div class="field-label" style="margin-bottom:7px"><i class="ti ti-tag"></i> 빠른 선택</div>
+    <div class="chip-row">
+      <button class="chip" onclick="setPrice(0,3)">3억 이하</button>
+      <button class="chip" onclick="setPrice(0,5)">5억 이하</button>
+      <button class="chip" onclick="setPrice(3,8)">3~8억</button>
+      <button class="chip" onclick="setPrice(5,15)">5~15억</button>
+      <button class="chip" onclick="setPrice(0,0)">제한없음</button>
+    </div></div></div>`;
+  }else if(s.id==='supply'){
+    html=`<div class="field-group"><div class="field-label"><i class="ti ti-building-community"></i> 최소 공급 세대수</div>
+    <div class="chip-row">
+      ${[['상관없음','0'],['100세대 이상','100'],['200세대 이상','200'],['500세대 이상','500']].map(([l,v])=>`
+        <button class="chip ${p.supplyMin===v?'on':''}" onclick="setSupply('${v}',this)">${l}</button>`).join('')}
+    </div></div>`;
+  }
+  document.getElementById('stepBody').innerHTML=html;
+  document.getElementById('stepCounter').textContent=`${curStep+1} / ${STEPS.length}`;
+  document.getElementById('prevBtn').style.visibility=curStep===0?'hidden':'visible';
+  document.getElementById('nextBtn').textContent=curStep===STEPS.length-1?'완료 — 공고 보기':'다음';
+}
+function toggleArr(key,val,el){
+  const arr=profile[key];const idx=arr.indexOf(val);
+  if(idx>-1)arr.splice(idx,1);else arr.push(val);
+  el.classList.toggle('on');
+}
+function setPrice(min,max){profile.priceMin=min===0?'':String(min);profile.priceMax=max===0?'':String(max);renderStepBody();}
+function setSupply(v,el){profile.supplyMin=v;document.querySelectorAll('#stepBody .chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');}
+function jumpStep(i){if(i<=curStep+1){curStep=i;renderStepIndicator();renderStepBody();}}
+function prevStep(){if(curStep>0){curStep--;renderStepIndicator();renderStepBody();}}
+function nextStep(){
+  if(curStep<STEPS.length-1){curStep++;renderStepIndicator();renderStepBody();}
+  else{finishSetup();}
+}
+function finishSetup(){
+  setupDone=true;allData=generateData();
+  document.getElementById('setupWrap').style.display='none';
+  document.getElementById('mainSection').style.display='block';
+  document.getElementById('setupToggleBtn').innerHTML='<i class="ti ti-adjustments-horizontal"></i> 조건수정';
+  renderProfileSummary();renderMatchBanner();updateTabs();renderList();renderPresets();
+  const now=new Date();
+  document.getElementById('lastUpd').textContent=`업데이트: ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+}
+function toggleSetup(){
+  const w=document.getElementById('setupWrap');
+  const ico=document.getElementById('collapseIco');
+  if(!setupDone){
+    const open=w.style.display!=='none'&&w.style.display!=='';
+    w.style.display=open?'none':'block';
+    ico.className=open?'ti ti-chevron-down':'ti ti-chevron-up';
+  }else{
+    if(w.style.display==='none'||!w.style.display){
+      curStep=0;renderStepIndicator();renderStepBody();
+      w.style.display='block';ico.className='ti ti-chevron-up';
+      document.getElementById('setupToggleBtn').innerHTML='<i class="ti ti-x"></i> 닫기';
+    }else{
+      w.style.display='none';
+      document.getElementById('setupToggleBtn').innerHTML='<i class="ti ti-adjustments-horizontal"></i> 조건수정';
+    }
+  }
+}
+
+/* ---- MAIN LIST ---- */
+function renderProfileSummary(){
+  const p=profile;const parts=[];
+  if(p.regions.length)parts.push({icon:'ti-map-pin',val:p.regions.join(', ')});
+  if(p.types.length)parts.push({icon:'ti-home',val:p.types.join(', ')});
+  if(p.specials.length)parts.push({icon:'ti-certificate',val:p.specials.join(', ')});
+  if(p.priceMin||p.priceMax)parts.push({icon:'ti-currency-won',val:(p.priceMin?p.priceMin+'억':'')+(p.priceMin&&p.priceMax?' ~ ':'')+(p.priceMax?p.priceMax+'억 이하':'')});
+  if(p.supplyMin&&p.supplyMin!=='0')parts.push({icon:'ti-building-community',val:p.supplyMin+'세대 이상'});
+  document.getElementById('profileSummary').innerHTML=parts.length
+    ?parts.map(pt=>`<span class="ps-item"><i class="ti ${pt.icon}" style="font-size:13px"></i><span class="ps-val">${pt.val}</span></span>`).join('')
+    :'<span class="ps-item">설정된 조건 없음 — 전체 공고 표시</span>';
+}
+function renderMatchBanner(){
+  const n=allData.filter(d=>isMatch(d)).length;
+  const pName=activePresetIdx>=0?` (${presets[activePresetIdx].name})`:'';
+  document.getElementById('matchBanner').innerHTML=`
+    <span style="display:flex;align-items:center;gap:8px"><i class="ti ti-sparkles"></i> 내 조건${pName}에 맞는 공고</span>
+    <span class="match-count">${n}건</span>`;
+}
+function updateTabs(){
+  [allData.filter(d=>isMatch(d)).length,allData.length,
+   allData.filter(d=>d.org==='GH').length,allData.filter(d=>d.org==='LH').length,
+   allData.filter(d=>d.org==='SH').length,bookmarks.length
+  ].forEach((c,i)=>{const el=document.getElementById('t'+i);if(el)el.textContent=c;});
+}
+function getFiltered(){
+  let data=[...allData];
+  if(curTab===0)data=data.filter(d=>isMatch(d));
+  else if(curTab===2)data=data.filter(d=>d.org==='GH');
+  else if(curTab===3)data=data.filter(d=>d.org==='LH');
+  else if(curTab===4)data=data.filter(d=>d.org==='SH');
+  else if(curTab===5)data=data.filter(d=>bookmarks.includes(d.id));
+  const q=document.getElementById('searchQ')?.value.trim().toLowerCase()||'';
+  if(q)data=data.filter(d=>d.name.toLowerCase().includes(q)||d.addr.toLowerCase().includes(q));
+  const sort=document.getElementById('sortSel')?.value||'dday';
+  if(sort==='dday')data.sort((a,b)=>(a.daysLeft??999)-(b.daysLeft??999));
+  else if(sort==='supply')data.sort((a,b)=>b.supply-a.supply);
+  return data;
+}
+function renderList(){
+  const data=getFiltered();
+  const pages=Math.ceil(data.length/PER)||1;
+  if(curPage>pages)curPage=1;
+  const slice=data.slice((curPage-1)*PER,curPage*PER);
+  const wrap=document.getElementById('listWrap');
+  if(!slice.length){
+    wrap.innerHTML=`<div class="no-match"><i class="ti ti-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>${curTab===0?'조건에 맞는 공고가 없습니다<br><small style="color:var(--text3)">조건 수정 또는 전체 탭 확인</small>':'해당 공고가 없습니다'}</div>`;
+    document.getElementById('pgWrap').innerHTML='';return;
+  }
+  const isM=curTab===0;
+  wrap.innerHTML=slice.map(d=>{
+    const dl=d.daysLeft;
+    const ddCls=dl===null||dl<0?'':dl===0?'red':dl<=3?'red':dl<=7?'amber':'green';
+    const ddTxt=dl===null||dl<0?'마감':dl===0?'오늘!':('D-'+dl);
+    const orgCls=d.org==='GH'?'p-gh':d.org==='LH'?'p-lh':'p-sh';
+    const reasons=isM?matchReasons(d):[];
+    return `<div class="card${isM?' match-card':''}" onclick="openDetail('${d.id}')">
+      <div class="card-top">
+        <div>
+          <div class="card-name">${d.name}${d.hot?' <span class="pill p-hot">인기</span>':''}${d.isNew?' <span class="pill p-new">NEW</span>':''}</div>
+          <div class="card-org"><span class="pill ${orgCls}">${d.orgLabel}</span>${d.addr} · ${d.type}</div>
+        </div>
+        <span class="dday ${ddCls}">${ddTxt}</span>
+      </div>
+      <div class="card-meta">
+        <span class="mi"><i class="ti ti-building-community" style="font-size:13px"></i>${d.supply.toLocaleString()}세대</span>
+        <span class="mi"><i class="ti ti-currency-won" style="font-size:13px"></i>${d.price}</span>
+        <span class="mi"><i class="ti ti-calendar" style="font-size:13px"></i>청약 ${fmtDate(d.apply)}</span>
+      </div>
+      ${reasons.length?`<div class="match-tags">${reasons.map(r=>`<span class="mt"><i class="ti ti-check" style="font-size:11px"></i>${r}</span>`).join('')}</div>`:''}</div>`;
+  }).join('');
+  const pgEl=document.getElementById('pgWrap');
+  if(pages<=1){pgEl.innerHTML='';return;}
+  let btns='';for(let i=1;i<=pages;i++)btns+=`<button class="pg-btn${i===curPage?' active':''}" onclick="goPg(${i})">${i}</button>`;
+  pgEl.innerHTML=btns;
+}
+function goPg(p){curPage=p;renderList();}
+function switchTab(idx,el){
+  curTab=idx;curPage=1;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');renderList();
+}
+
+/* ---- DETAIL ---- */
+function openDetail(id){
+  const d=allData.find(x=>x.id===id);if(!d)return;
+  const bm=bookmarks.includes(id);
+  const dl=d.daysLeft;
+  const ddTxt=dl===null||dl<0?'마감':dl===0?'오늘 마감!':('D-'+dl);
+  document.getElementById('modalTitle').textContent=d.name;
+  document.getElementById('modalBody').innerHTML=`
+    <div class="ds"><div class="ds-label">공고 정보</div>
+      <div class="dr"><span class="dk">공급기관</span><span class="dv">${d.orgLabel}</span></div>
+      <div class="dr"><span class="dk">주택 유형</span><span class="dv">${d.type}</span></div>
+      <div class="dr"><span class="dk">위치</span><span class="dv">${d.addr}</span></div>
+      <div class="dr"><span class="dk">공급 세대</span><span class="dv-hl">${d.supply.toLocaleString()}세대</span></div>
+      <div class="dr"><span class="dk">분양가</span><span class="dv-hl">${d.price}</span></div>
+      <div class="dr"><span class="dk">입주 예정</span><span class="dv">${d.move}</span></div>
+    </div>
+    <div class="ds"><div class="ds-label">청약 일정</div>
+      <div class="dr"><span class="dk">청약 시작</span><span class="dv">${fmtDate(d.apply)}</span></div>
+      <div class="dr"><span class="dk">청약 마감</span><span class="dv">${fmtDate(d.close)}</span></div>
+      <div class="dr"><span class="dk">남은 기간</span><span class="dv-hl">${ddTxt}</span></div>
+      <div class="dr"><span class="dk">경쟁률</span><span class="dv">${d.ratio}</span></div>
+    </div>
+    <div class="ds"><div class="ds-label">특별공급</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;padding:4px 0">${d.special.length?d.special.map(s=>`<span class="chip on" style="cursor:default">${s}</span>`).join(''):'<span style="font-size:13px;color:var(--text2)">해당없음</span>'}</div>
+    </div>
+    <div class="ds"><div class="ds-label">조건 매칭</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;padding:4px 0">${matchReasons(d).length?matchReasons(d).map(r=>`<span class="mt"><i class="ti ti-check" style="font-size:11px"></i>${r}</span>`).join(''):'<span style="font-size:13px;color:var(--text2)">조건 미설정</span>'}</div>
+    </div>
+    <div class="action-btns">
+      <button class="abtn ${bm?'primary':''}" id="bmBtn" onclick="toggleBm('${id}')">
+        <i class="ti ti-bookmark"></i> ${bm?'저장됨 (클릭하여 해제)':'관심 단지 저장'}
+      </button>
+      <button class="abtn" onclick="window.open('${d.org==='GH'?'https://www.applyhome.co.kr':d.org==='LH'?'https://apply.lh.or.kr':'https://www.i-sh.co.kr'}','_blank')">
+        <i class="ti ti-external-link"></i> 공식 사이트 바로가기
+      </button>
+    </div>`;
+  openModal('detailBg');
+}
+function toggleBm(id){
+  const idx=bookmarks.indexOf(id);
+  if(idx>-1)bookmarks.splice(idx,1);else bookmarks.push(id);
+  save();updateTabs();renderList();openDetail(id);
+  showToast(bookmarks.includes(id)?'관심 단지에 저장했습니다':'저장을 해제했습니다');
+}
+
+/* ---- NOTIFY ---- */
+function openNotifyModal(){
+  document.getElementById('slackUrl').value=notifySettings.slackUrl||'';
+  document.getElementById('discordUrl').value=notifySettings.discordUrl||'';
+  document.getElementById('slackCard').classList.toggle('on',!!notifySettings.slack);
+  document.getElementById('discordCard').classList.toggle('on',!!notifySettings.discord);
+  document.getElementById('slackSection').style.display=notifySettings.slack?'block':'none';
+  document.getElementById('discordSection').style.display=notifySettings.discord?'block':'none';
+  openModal('notifyModalBg');
+}
+function togglePlatform(p){
+  notifySettings[p]=!notifySettings[p];
+  document.getElementById(p+'Card').classList.toggle('on',notifySettings[p]);
+  document.getElementById(p+'Section').style.display=notifySettings[p]?'block':'none';
+  saveNotifySettings();
+}
+function saveNotifySettings(){
+  notifySettings.slackUrl=document.getElementById('slackUrl')?.value||'';
+  notifySettings.discordUrl=document.getElementById('discordUrl')?.value||'';
+  save();
+}
+async function testWebhook(platform){
+  const url=platform==='slack'?notifySettings.slackUrl:notifySettings.discordUrl;
+  if(!url){showToast('Webhook URL을 먼저 입력해주세요');return;}
+  const matched=setupDone?allData.filter(d=>isMatch(d)):[{name:'테스트 공고 (마포 래미안)'}];
+  const text=matched.length
+    ?`🏠 [청약 알리미] 맞춤 공고 ${matched.length}건\n` + matched.slice(0,3).map(d=>`• ${d.name}`).join('\n')
+    :'🏠 [청약 알리미] 현재 맞춤 공고가 없습니다.';
+  const body=platform==='discord'?{content:text}:{text};
+  try{
+    await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),mode:'no-cors'});
+    showToast(`${platform==='slack'?'Slack':'Discord'} 테스트 메시지를 보냈습니다`);
+  }catch(e){showToast('전송 오류 — URL을 확인해주세요');}
+}
+
+/* ---- MISC ---- */
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function bgClose(e,id){if(e.target===document.getElementById(id))closeModal(id);}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+function doRefresh(){
+  if(!setupDone)return;
+  const ico=document.getElementById('refreshIco');
+  ico.classList.add('spin');
+  setTimeout(()=>{
+    ico.classList.remove('spin');
+    allData=generateData();updateTabs();renderList();renderMatchBanner();renderPresets();
+    const now=new Date();
+    document.getElementById('lastUpd').textContent=`업데이트: ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+    showToast('최신 공고로 업데이트됐습니다');
+  },900);
+}
+
+// INIT
+if(presets.length){renderPresets();}else{renderPresets();}
+curStep=0;renderStepIndicator();renderStepBody();
+// 알림 버튼 상태 표시
+if(notifySettings.slack||notifySettings.discord){
+  document.getElementById('notifyBtn').classList.add('accent');
+  document.getElementById('notifyBtn').innerHTML='<i class="ti ti-bell-ringing"></i> 알림ON';
+}
+</script>
+</body>
+</html>
