@@ -442,7 +442,8 @@ function diffDays(s){
 }
 
 const SHEET_ID = '19P2Ze7JfxcLLJ6be68A3yZjEKCLFKAgODztwkTOZWfM';
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=시트1`;
+const SHEET_URL_GH = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=시트1`;
+const SHEET_URL_LH = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=LH공고`;
 
 // 유형명 → 내부 타입 매핑
 function mapType(v){
@@ -498,59 +499,88 @@ function mapOrg(addr, type){
   return {org:'GH',orgLabel:'청약홈'};
 }
 
-async function fetchSheetData(){
+async function fetchGHData(){
   try{
-    const res = await fetch(SHEET_URL);
+    const res = await fetch(SHEET_URL_GH);
     const text = await res.text();
-    // Google gviz 응답에서 JSON 추출
     const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
     const rows = json.table.rows;
-    const today = new Date(); today.setHours(0,0,0,0);
-
     return rows
-      .filter(r => r.c && r.c[0] && r.c[0].v) // 빈 행 제거
+      .filter(r => r.c && r.c[0] && r.c[0].v)
       .map((r,i) => {
         const cells = r.c.map(c => {
           if(!c) return '';
-          // 날짜 타입은 v가 "Date(...)" 형식이므로 그대로 사용, 나머지는 v 우선
           if(c.v === null || c.v === undefined) return '';
           return String(c.v);
         });
         const [공고번호, 주택명, 지역, 주소, 유형, 공급세대, 청약시작, 청약마감, 입주예정, 공고URL] = cells;
         const closeDate = normDate(청약마감);
         const dl = diffDays(closeDate);
-        const orgInfo = mapOrg(공고URL||'', 유형||'');
+        const orgInfo = {org:'GH', orgLabel:'청약홈'};
         return {
-          id: 공고번호 || `row_${i}`,
-          org: orgInfo.org,
-          orgLabel: orgInfo.orgLabel,
-          type: mapType(유형),
-          region: mapRegion(지역),
-          name: 주택명 || '-',
-          addr: 주소 || 지역 || '-',
-          supply: parseInt(공급세대)||0,
-          priceVal: 0, // API에서 미제공
-          price: '-',
-          apply: normDate(청약시작),
-          close: closeDate,
+          id: 공고번호 || `gh_${i}`,
+          org: orgInfo.org, orgLabel: orgInfo.orgLabel,
+          type: mapType(유형), region: mapRegion(지역),
+          name: 주택명 || '-', addr: 주소 || 지역 || '-',
+          supply: parseInt(공급세대)||0, priceVal: 0, price: '-',
+          apply: normDate(청약시작), close: closeDate,
           move: (입주예정||'').replace(/(\d{4})(\d{2})/,'$1.$2'),
-          hot: false,
-          isNew: dl !== null && dl >= 0 && dl <= 7,
-          special: [],
-          ratio: '-',
-          url: 공고URL || '',
-          daysLeft: dl,
+          hot: false, isNew: dl !== null && dl >= 0 && dl <= 7,
+          special: [], ratio: '-', url: 공고URL || '', daysLeft: dl,
         };
       })
       .filter(d => d.daysLeft === null || d.daysLeft >= 0);
-  } catch(e){
-    console.error('Sheets 데이터 로드 실패:', e);
-    return [];
-  }
+  } catch(e){ console.error('GH 데이터 로드 실패:', e); return []; }
+}
+
+async function fetchLHData(){
+  try{
+    const res = await fetch(SHEET_URL_LH);
+    const text = await res.text();
+    const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+    const rows = json.table.rows;
+    return rows
+      .filter(r => r.c && r.c[0] && r.c[0].v)
+      .map((r,i) => {
+        const cells = r.c.map(c => {
+          if(!c) return '';
+          if(c.v === null || c.v === undefined) return '';
+          return String(c.v);
+        });
+        const [공고번호, 공고명, 유형, 지역, 공고시작, 마감일, 공고URL] = cells;
+        const closeDate = normDate(마감일);
+        const dl = diffDays(closeDate);
+        return {
+          id: 공고번호 || `lh_${i}`,
+          org: 'LH', orgLabel: 'LH공사',
+          type: mapType(유형), region: mapRegion(지역),
+          name: 공고명 || '-', addr: 지역 || '-',
+          supply: 0, priceVal: 0, price: '-',
+          apply: normDate(공고시작), close: closeDate,
+          move: '-', hot: false,
+          isNew: dl !== null && dl >= 0 && dl <= 7,
+          special: mapLHSpecial(유형), ratio: '-',
+          url: 공고URL || '', daysLeft: dl,
+        };
+      })
+      .filter(d => d.daysLeft === null || d.daysLeft >= 0);
+  } catch(e){ console.error('LH 데이터 로드 실패:', e); return []; }
+}
+
+function mapLHSpecial(type){
+  if(!type) return [];
+  const specials = [];
+  if(type.includes('신혼')) specials.push('신혼부부');
+  if(type.includes('청년')) specials.push('청년');
+  if(type.includes('고령')||type.includes('노인')) specials.push('고령자');
+  if(type.includes('다자녀')) specials.push('다자녀');
+  if(type.includes('일반')) specials.push('생애최초');
+  return specials;
 }
 
 async function generateData(){
-  return await fetchSheetData();
+  const [ghData, lhData] = await Promise.all([fetchGHData(), fetchLHData()]);
+  return [...ghData, ...lhData];
 }
 
 function isMatch(d,p){
