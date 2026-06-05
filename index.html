@@ -410,7 +410,7 @@ const STEPS=[
   {id:'supply',title:'공급 규모',icon:'ti-building-community'},
 ];
 const REGIONS=['서울','경기','인천','부산','대전','광주','대구','세종','기타'];
-const TYPES=['민영','국민','임대','분양전환'];
+const TYPES=['민영','국민','임대','분양전환','상가','토지','기타'];
 const SPECIALS=['해당없음','신혼부부','생애최초','다자녀','청년','노부모','고령자'];
 const PRESET_COLORS=['#1D9E75','#378ADD','#D85A30','#D4537E','#7F77DD','#BA7517','#888780'];
 
@@ -450,11 +450,12 @@ function mapType(v){
   if(!v) return '기타';
   if(v.includes('민영')) return '민영';
   if(v.includes('국민')) return '국민';
-  if(v.includes('임대')) return '임대';
+  if(v.includes('임대')||v.includes('행복주택')||v.includes('전세임대')||v.includes('매입임대')) return '임대';
   if(v.includes('분양전환')) return '분양전환';
-  if(v.includes('신혼희망')) return '민영';
-  if(v.includes('공공')) return '국민';
-  return v;
+  if(v.includes('신혼희망')||v.includes('공공분양')||v.includes('뉴홈')) return '국민';
+  if(v.includes('상가')||v.includes('근린')) return '상가';
+  if(v.includes('토지')||v.includes('필지')) return '토지';
+  return '기타';
 }
 // 지역명 → 광역시도 단축
 function mapRegion(v){
