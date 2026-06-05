@@ -455,7 +455,8 @@ function generateData(){
     {id:'sh1',org:'SH',orgLabel:'SH공사',type:'임대',region:'서울',name:'마곡지구 SH 행복주택',addr:'서울 강서구',supply:320,priceVal:0.5,price:'보증금 4,500만/월 23만',apply:'20250607',close:'20250614',move:'2026.11',hot:true,isNew:false,special:['청년','신혼부부'],ratio:'1:8.4'},
     {id:'sh2',org:'SH',orgLabel:'SH공사',type:'국민',region:'서울',name:'은평구 SH 뉴홈 공공분양',addr:'서울 은평구',supply:156,priceVal:6,price:'5.1억~7.4억',apply:'20250615',close:'20250622',move:'2028.02',hot:false,isNew:true,special:['생애최초'],ratio:'1:6.3'},
     {id:'sh3',org:'SH',orgLabel:'SH공사',type:'임대',region:'서울',name:'장위뉴타운 SH 장기전세',addr:'서울 성북구',supply:84,priceVal:1.8,price:'보증금 1.8억 (시세 80%)',apply:'20250622',close:'20250629',move:'즉시',hot:false,isNew:false,special:['다자녀','노부모','고령자'],ratio:'1:2.0'},
-  ].map(d=>({...d,daysLeft:diffDays(d.close)}));
+  ].map(d=>({...d,daysLeft:diffDays(d.close)}))
+   .filter(d=>d.daysLeft===null||d.daysLeft>=0);
 }
 
 function isMatch(d,p){
